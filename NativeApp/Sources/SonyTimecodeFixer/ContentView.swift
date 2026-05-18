@@ -95,10 +95,6 @@ struct ContentView: View {
             .disabled(!canPatch)
 
             if let outputURL {
-                Button("Open in Resolve", systemImage: "arrow.up.forward.app") {
-                    openInResolve(outputURL)
-                }
-
                 Button("Reveal in Finder", systemImage: "finder") {
                     reveal(outputURL)
                 }
@@ -226,47 +222,6 @@ struct ContentView: View {
                     isRunning = false
                 }
             }
-        }
-    }
-
-    private func openInResolve(_ url: URL) {
-        NSWorkspace.shared.open(
-            [url],
-            withApplicationAt: URL(fileURLWithPath: "/Applications/DaVinci Resolve/DaVinci Resolve.app"),
-            configuration: NSWorkspace.OpenConfiguration()
-        ) { _, error in
-            if let error {
-                DispatchQueue.main.async {
-                    openWithResolveUsingShell(url, previousError: error)
-                }
-            } else {
-                DispatchQueue.main.async {
-                    logText = logText.ifEmpty("Opened \(url.lastPathComponent) in DaVinci Resolve.")
-                    errorText = nil
-                }
-            }
-        }
-    }
-
-    private func openWithResolveUsingShell(_ url: URL, previousError: Error) {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        process.arguments = ["-b", "com.blackmagic-design.DaVinciResolve", url.path]
-
-        do {
-            try process.run()
-            process.waitUntilExit()
-
-            if process.terminationStatus == 0 {
-                logText = logText.ifEmpty("Opened \(url.lastPathComponent) in DaVinci Resolve.")
-                errorText = nil
-            } else {
-                errorText = "Could not open DaVinci Resolve automatically. Import the patched FCPXML manually from Resolve.\n\n\(previousError.localizedDescription)"
-                reveal(url)
-            }
-        } catch {
-            errorText = "Could not open DaVinci Resolve automatically. Import the patched FCPXML manually from Resolve.\n\n\(error.localizedDescription)"
-            reveal(url)
         }
     }
 
