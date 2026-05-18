@@ -1,0 +1,11 @@
+.DS_Store
+__pycache__/
+*.pyc
+
+# Local build outputs
+Build/
+*.app/
+*.zip
+
+# Local test exports
+*_tc_fixed*.fcpxml
