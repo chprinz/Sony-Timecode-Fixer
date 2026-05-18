@@ -2,6 +2,8 @@
 
 Sony Timecode Fixer patches Final Cut Pro XML exports so DaVinci Resolve can relink Sony XAVC-S MP4 clips that use real camera timecode.
 
+![Sony Timecode Fixer app screenshot](docs/screenshot.jpg)
+
 ## Why This Exists
 
 Some Sony MP4 files store camera timecode in metadata that Final Cut Pro does not use when exporting FCPXML. FCP may export those clips as if they start at `00:00:00:00`, while Resolve reads the real embedded timecode, such as `12:57:00:18`. Resolve then cannot match the XML edit points to the media correctly.
@@ -10,7 +12,9 @@ This tool reads the Sony MP4 timecode with `ffprobe`, patches the FCPXML asset a
 
 ## Download
 
-Download the latest `Sony Timecode Fixer.app.zip` from the GitHub Releases page.
+Download the latest ZIP or DMG from the GitHub Releases page.
+
+The DMG can be opened directly. Because the app is not signed or notarized, macOS may show a security warning the first time you launch it. If that happens, right-click the app and choose `Open`, or allow it in `System Settings > Privacy & Security`.
 
 ## How To Use
 
@@ -60,6 +64,12 @@ The built app appears as:
 
 ```text
 Sony Timecode Fixer.app
+```
+
+Create a DMG:
+
+```bash
+Scripts/build-dmg.sh
 ```
 
 ## Notes
