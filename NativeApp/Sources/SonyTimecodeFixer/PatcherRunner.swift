@@ -29,6 +29,7 @@ final class PatcherRunner {
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
         process.environment = [
             "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+            "FCPXML_TC_PATCHER_FFPROBE": "/opt/homebrew/bin/ffprobe",
         ]
         var arguments = [
             "python3",

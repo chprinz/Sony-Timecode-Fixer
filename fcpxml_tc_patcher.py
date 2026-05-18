@@ -15,6 +15,7 @@ Requirements:
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -27,6 +28,7 @@ from urllib.parse import unquote, urlparse
 
 
 SOURCE_START_ELEMENTS = {"asset-clip", "clip", "ref-clip", "video"}
+FFPROBE_BINARY = "ffprobe"
 
 
 @dataclass(frozen=True)
@@ -341,7 +343,7 @@ def run_ffprobe_timecode(path: Path, show_entry: str, select_video: bool) -> Opt
     """Run one ffprobe query and return the first discovered timecode."""
 
     command = [
-        "ffprobe",
+        FFPROBE_BINARY,
         "-v",
         "quiet",
     ]
@@ -593,16 +595,45 @@ def output_path_for(input_path: Path, requested_output: Optional[Path]) -> Path:
     return input_path.with_name(f"{input_path.stem}_tc_fixed{output_suffix}")
 
 
+def find_ffprobe() -> Optional[str]:
+    """Find ffprobe even when a Finder-launched app has a minimal PATH."""
+
+    candidates = [
+        os.environ.get("FCPXML_TC_PATCHER_FFPROBE"),
+        shutil.which("ffprobe"),
+        "/opt/homebrew/bin/ffprobe",
+        "/usr/local/bin/ffprobe",
+        "/opt/local/bin/ffprobe",
+        "/usr/bin/ffprobe",
+    ]
+
+    for cellared in sorted(Path("/opt/homebrew/Cellar/ffmpeg").glob("*/bin/ffprobe"), reverse=True):
+        candidates.append(str(cellared))
+    for cellared in sorted(Path("/usr/local/Cellar/ffmpeg").glob("*/bin/ffprobe"), reverse=True):
+        candidates.append(str(cellared))
+
+    for candidate in candidates:
+        if candidate and Path(candidate).is_file() and os.access(candidate, os.X_OK):
+            return str(candidate)
+
+    return None
+
+
 def ensure_ffprobe_available() -> None:
     """Exit with installation guidance if ffprobe is not available."""
 
-    if shutil.which("ffprobe"):
+    global FFPROBE_BINARY
+    ffprobe = find_ffprobe()
+    if ffprobe:
+        FFPROBE_BINARY = ffprobe
         return
 
     print(
         "ERROR: ffprobe was not found on PATH.\n"
         "Install FFmpeg, which includes ffprobe, then run this script again.\n"
         "macOS/Homebrew: brew install ffmpeg\n"
+        f"PATH checked: {os.environ.get('PATH', '')}\n"
+        "Also checked: /opt/homebrew/bin, /usr/local/bin, /opt/local/bin, and Homebrew Cellar paths.\n"
         "Windows: https://ffmpeg.org/download.html\n"
         "Linux: install the ffmpeg package with your distribution's package manager.",
         file=sys.stderr,
